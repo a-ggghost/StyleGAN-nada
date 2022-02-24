@@ -168,6 +168,12 @@ class TrainOptions(object):
         )
 
         self.parser.add_argument(
+            "--src_img_dir",
+            type=str,
+            help="Path to a directory containing images (png, jpg or jpeg) with a specific source style"
+        )
+
+        self.parser.add_argument(
             "--img2img_batch",
             type=int,
             default=16,
@@ -290,6 +296,6 @@ class TrainOptions(object):
 
         opts.train_gen_ckpt = opts.train_gen_ckpt or opts.frozen_gen_ckpt
 
+        opts.source_img_list = get_dir_img_list(opts.src_img_dir) if opts.src_img_dir else None
         opts.target_img_list = get_dir_img_list(opts.style_img_dir) if opts.style_img_dir else None
-
         return opts
