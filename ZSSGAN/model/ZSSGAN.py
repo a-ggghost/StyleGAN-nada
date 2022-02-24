@@ -192,7 +192,7 @@ class ZSSGAN(torch.nn.Module):
             generated = self.generator_trainable([sample_z])[0]
 
             for _, model in self.clip_loss_models.items():
-                direction = model.compute_img2img_direction(generated, self.args.target_img_list)
+                direction = model.compute_img2img_direction(self.args.src_img_list, self.args.target_img_list)
 
                 model.target_direction = direction
 
