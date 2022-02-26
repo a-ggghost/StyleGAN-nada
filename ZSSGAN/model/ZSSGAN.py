@@ -52,7 +52,9 @@ class SG2Generator(torch.nn.Module):
              return list(self.get_all_layers())[1:3] + list(self.get_all_layers()[4][0:3])
         if phase == 'all':
             # everything, including mapping and ToRGB
-            return self.get_all_layers() 
+            return self.get_all_layers()
+        if phase == 'only_fine':
+            return list(self.get_all_layers()[4][8:])
         else: 
             # everything except mapping and ToRGB
             return list(self.get_all_layers())[1:3] + list(self.get_all_layers()[4][:])  
