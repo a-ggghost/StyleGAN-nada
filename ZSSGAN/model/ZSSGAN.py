@@ -52,7 +52,7 @@ class SG2Generator(torch.nn.Module):
              return list(self.get_all_layers())[1:3] + list(self.get_all_layers()[4][0:3])
         if phase == 'all':
             # everything, including mapping and ToRGB
-            return self.get_all_layers()
+            return self.get_all_layers() 
         if phase == 'only_fine':
             return list(self.get_all_layers()[4][8:])
         else: 
@@ -185,13 +185,25 @@ class ZSSGAN(torch.nn.Module):
         self.auto_layer_k     = args.auto_layer_k
         self.auto_layer_iters = args.auto_layer_iters
         
-        if args.target_img_list is not None:
+        if args.target_img_list and args.src_img_list is not None:
             self.set_img2img_direction()
+        else:
+          if args.target_img_list is not None:
+            self.set_gen2img_direction()
+
+    def set_gen2img_direction(self):
+        with torch.no_grad():
+            sample_z  = torch.randn(self.args.img2img_batch, 512, device=self.device)
+            generated = self.generator_trainable([sample_z])[0]
+
+            for _, model in self.clip_loss_models.items():
+                direction = model.compute_gen2img_direction(generated, self.args.target_img_list)
+
+                model.target_direction = direction
 
     def set_img2img_direction(self):
         with torch.no_grad():
             sample_z  = torch.randn(self.args.img2img_batch, 512, device=self.device)
-            generated = self.generator_trainable([sample_z])[0]
 
             for _, model in self.clip_loss_models.items():
                 direction = model.compute_img2img_direction(self.args.src_img_list, self.args.target_img_list)
