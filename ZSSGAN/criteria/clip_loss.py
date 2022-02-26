@@ -118,9 +118,32 @@ class CLIPLoss(torch.nn.Module):
 
         return text_direction
 
-    def compute_img2img_direction(self, source_images: list, target_images: list) -> torch.Tensor:
+    def compute_gen2img_direction(self, source_images: torch.Tensor, target_images: list) -> torch.Tensor:
         with torch.no_grad():
 
+            src_encoding = self.get_image_features(source_images)
+            src_encoding = src_encoding.mean(dim=0, keepdim=True)
+
+            target_encodings = []
+            for target_img in target_images:
+                preprocessed = self.clip_preprocess(Image.open(target_img)).unsqueeze(0).to(self.device)
+
+                encoding = self.model.encode_image(preprocessed)
+                encoding /= encoding.norm(dim=-1, keepdim=True)
+
+                target_encodings.append(encoding)
+
+            target_encoding = torch.cat(target_encodings, axis=0)
+            target_encoding = target_encoding.mean(dim=0, keepdim=True)
+
+            direction = target_encoding - src_encoding
+            direction /= direction.norm(dim=-1, keepdim=True)
+
+        return direction
+
+    def compute_img2img_direction(self, source_images: list, target_images: list) -> torch.Tensor:
+        with torch.no_grad():
+            
             source_encodings = []
             for source_img in source_images:
                 preprocessed = self.clip_preprocess(Image.open(source_img)).unsqueeze(0).to(self.device)
